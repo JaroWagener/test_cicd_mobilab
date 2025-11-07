@@ -2,6 +2,7 @@ import os
 import pg8000
 import pandas as pd
 from dotenv import load_dotenv
+import ssl
 
 load_dotenv()
 
@@ -13,12 +14,18 @@ print(f"   DB_PORT: {os.getenv('DB_PORT', 5432)}")
 print(f"   DB_NAME: {os.getenv('DB_NAME')}")
 print(f"   DB_PASSWORD: {'*' * len(os.getenv('DB_PASSWORD', '')) if os.getenv('DB_PASSWORD') else 'NOT SET'}")
 
+# Create SSL context for Neon
+ssl_context = ssl.create_default_context()
+ssl_context.check_hostname = False
+ssl_context.verify_mode = ssl.CERT_NONE
+
 DB_CONFIG = {
     "user": os.getenv("DB_USER"),
     "password": os.getenv("DB_PASSWORD"),
     "host": os.getenv("DB_HOST"),
     "port": int(os.getenv("DB_PORT", 5432)),
-    "database": os.getenv("DB_NAME")
+    "database": os.getenv("DB_NAME"),
+    "ssl_context": ssl_context  # Add SSL context for Neon
 }
 
 # Remove any None values that might cause issues
@@ -36,8 +43,9 @@ except Exception as e:
     print(f"❌ Connection failed: {e}")
     print("\n💡 Troubleshooting tips:")
     print("   1. Verify your database credentials in GitHub Secrets")
-    print("   2. Check if the database requires SSL (Neon does)")
-    print("   3. Ensure the database user has proper permissions")
+    print("   2. Ensure credentials don't have extra spaces/newlines")
+    print("   3. Check if the Neon database is active (not suspended)")
+    print("   4. Verify the user has CONNECT privileges")
     raise
 
 cur = conn.cursor()
@@ -100,7 +108,7 @@ for file in sorted(os.listdir(CSV_DIR)):
     with open(tmp_path, "r", encoding="utf-8") as f:
         try:
             cur.copy_expert(copy_sql, f)
-            conn.commit()  # Added commit after each import
+            conn.commit()  # Commit after each import
             print(f"✅ Imported {len(df)} rows into {table_name}.")
         except Exception as e:
             print(f"❌ Error importing {table_name}: {e}")
