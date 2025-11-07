@@ -11,7 +11,7 @@ DB_CONFIG = {
     "host": os.getenv("DB_HOST"),
     "port": int(os.getenv("DB_PORT", 5432)),
     "database": os.getenv("DB_NAME"),
-    "ssl": True  # <-- required for Neon
+    "ssl_context": True  # <-- Changed from 'ssl' to 'ssl_context' for pg8000
 }
 
 CSV_DIR = os.getenv("CSV_DIR")
