@@ -13,12 +13,6 @@ db_host = os.getenv('DB_HOST')
 db_port = os.getenv('DB_PORT', '5432')
 db_name = os.getenv('DB_NAME')
 
-print(f"   DB_USER: '{db_user}' (length: {len(db_user) if db_user else 0})")
-print(f"   DB_HOST: '{db_host}' (length: {len(db_host) if db_host else 0})")
-print(f"   DB_PORT: '{db_port}'")
-print(f"   DB_NAME: '{db_name}' (length: {len(db_name) if db_name else 0})")
-print(f"   DB_PASSWORD: {'*' * len(db_password) if db_password else 'NOT SET'} (length: {len(db_password) if db_password else 0})")
-
 # Check for whitespace issues
 if db_user and (db_user != db_user.strip()):
     print("   ⚠️  WARNING: DB_USER has leading/trailing whitespace!")
@@ -49,20 +43,6 @@ try:
         connect_timeout=10
     )
     print("✅ Successfully connected to database!")
-except psycopg2.OperationalError as e:
-    print(f"❌ Connection failed: {e}")
-    print("\n💡 Common causes of SASL authentication failures:")
-    print("   1. Incorrect password - Double-check in Neon dashboard")
-    print("   2. Wrong username format - Should it include @project?")
-    print("   3. Database suspended - Check Neon console")
-    print("   4. IP not whitelisted - Check Neon's IP allowlist settings")
-    print("   5. Role doesn't exist or has wrong permissions")
-    print("\n📝 Next steps:")
-    print("   → Go to your Neon dashboard")
-    print("   → Click 'Connection Details'")
-    print("   → Copy EACH field individually (user, password, host, database)")
-    print("   → Update GitHub Secrets with EXACT values (no quotes, no spaces)")
-    raise
 except Exception as e:
     print(f"❌ Unexpected error: {e}")
     raise
@@ -78,7 +58,6 @@ def truncate_table(cursor, table_name):
     try:
         cursor.execute(f"TRUNCATE TABLE {table_name} RESTART IDENTITY CASCADE;")
         conn.commit()
-        print(f"🗑️ Table {table_name} emptied.")
     except Exception as e:
         print(f"❌ Error truncating {table_name}: {e}")
         conn.rollback()
@@ -93,8 +72,6 @@ for file in sorted(os.listdir(CSV_DIR)):
 
     # Truncate table first
     truncate_table(cur, table_name)
-
-    print(f"\n📥 Importing {file} → table {table_name}...")
 
     # Read CSV
     df = pd.read_csv(csv_path, sep=";", quotechar='"', escapechar="'")
@@ -130,7 +107,6 @@ for file in sorted(os.listdir(CSV_DIR)):
         try:
             cur.copy_expert(copy_sql, f)
             conn.commit()
-            print(f"✅ Imported {len(df)} rows into {table_name}.")
         except Exception as e:
             print(f"❌ Error importing {table_name}: {e}")
             conn.rollback()
