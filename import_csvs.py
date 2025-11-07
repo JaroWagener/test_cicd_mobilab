@@ -1,10 +1,12 @@
 import os
-import pandas as pd
-from dotenv import load_dotenv
 import pg8000.native
+import ssl
+from dotenv import load_dotenv
 
-# === Load environment variables from .env ===
 load_dotenv()
+
+# Create a default SSL context
+ssl_context = ssl.create_default_context()
 
 DB_CONFIG = {
     "user": os.getenv("DB_USER"),
@@ -12,11 +14,13 @@ DB_CONFIG = {
     "host": os.getenv("DB_HOST"),
     "port": int(os.getenv("DB_PORT", 5432)),
     "database": os.getenv("DB_NAME"),
-    "ssl": True  # Required for Neon
+    "tls_context": ssl_context   # <-- use TLS context for SSL
 }
 
+# Connect to Neon
 conn = pg8000.native.Connection(**DB_CONFIG)
 cur = conn.cursor()
+
 
 CSV_DIR = os.getenv("CSV_DIR")
 
