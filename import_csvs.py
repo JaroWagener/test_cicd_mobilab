@@ -1,12 +1,9 @@
 import os
-import pg8000.native
-import ssl
+import pg8000
+import pandas as pd
 from dotenv import load_dotenv
 
 load_dotenv()
-
-# Create a default SSL context
-ssl_context = ssl.create_default_context()
 
 DB_CONFIG = {
     "user": os.getenv("DB_USER"),
@@ -14,19 +11,13 @@ DB_CONFIG = {
     "host": os.getenv("DB_HOST"),
     "port": int(os.getenv("DB_PORT", 5432)),
     "database": os.getenv("DB_NAME"),
-    "tls_context": ssl_context   # <-- use TLS context for SSL
+    "ssl": True  # <-- required for Neon
 }
-
-# Connect to Neon
-conn = pg8000.native.Connection(**DB_CONFIG)
-cur = conn.cursor()
-
 
 CSV_DIR = os.getenv("CSV_DIR")
 
-# === Connect to PostgreSQL ===
-conn = psycopg2.connect(**DB_CONFIG)
-conn.autocommit = True
+# === Connect to Neon PostgreSQL via pg8000 ===
+conn = pg8000.connect(**DB_CONFIG)
 cur = conn.cursor()
 
 # === Helpers ===
@@ -65,13 +56,12 @@ for file in os.listdir(CSV_DIR):
     # Convert Ja/Nee to boolean, except for HAS_PROPERTY
     for col in df.columns:
         if col == "HAS_PROPERTY":
-            continue  # skip this column
+            continue
         if df[col].astype(str).str.lower().isin(["ja", "nee"]).any():
             df[col] = df[col].map(
                 lambda x: True if str(x).lower() == "ja" else (False if str(x).lower() == "nee" else None)
             )
             print(f"   ↳ Converted 'Ja'/'Nee' to boolean in column '{col}'.")
-
 
     # Prepare COPY command
     columns = ','.join(df.columns)
