@@ -5,19 +5,41 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Debug: Print configuration (without password)
+print("🔍 Checking configuration...")
+print(f"   DB_USER: {os.getenv('DB_USER')}")
+print(f"   DB_HOST: {os.getenv('DB_HOST')}")
+print(f"   DB_PORT: {os.getenv('DB_PORT', 5432)}")
+print(f"   DB_NAME: {os.getenv('DB_NAME')}")
+print(f"   DB_PASSWORD: {'*' * len(os.getenv('DB_PASSWORD', '')) if os.getenv('DB_PASSWORD') else 'NOT SET'}")
+
 DB_CONFIG = {
     "user": os.getenv("DB_USER"),
     "password": os.getenv("DB_PASSWORD"),
     "host": os.getenv("DB_HOST"),
     "port": int(os.getenv("DB_PORT", 5432)),
-    "database": os.getenv("DB_NAME"),
-    "ssl_context": True  # <-- Changed from 'ssl' to 'ssl_context' for pg8000
+    "database": os.getenv("DB_NAME")
 }
+
+# Remove any None values that might cause issues
+DB_CONFIG = {k: v for k, v in DB_CONFIG.items() if v is not None}
 
 CSV_DIR = os.getenv("CSV_DIR")
 
+print("\n🔌 Attempting to connect to database...")
+
 # === Connect to Neon PostgreSQL via pg8000 ===
-conn = pg8000.connect(**DB_CONFIG)
+try:
+    conn = pg8000.connect(**DB_CONFIG)
+    print("✅ Successfully connected to database!")
+except Exception as e:
+    print(f"❌ Connection failed: {e}")
+    print("\n💡 Troubleshooting tips:")
+    print("   1. Verify your database credentials in GitHub Secrets")
+    print("   2. Check if the database requires SSL (Neon does)")
+    print("   3. Ensure the database user has proper permissions")
+    raise
+
 cur = conn.cursor()
 
 # === Helpers ===
@@ -33,7 +55,7 @@ def truncate_table(cursor, table_name):
         print(f"❌ Error truncating {table_name}: {e}")
 
 # === Main import loop ===
-for file in os.listdir(CSV_DIR):
+for file in sorted(os.listdir(CSV_DIR)):
     if not file.endswith(".csv"):
         continue
 
@@ -78,9 +100,11 @@ for file in os.listdir(CSV_DIR):
     with open(tmp_path, "r", encoding="utf-8") as f:
         try:
             cur.copy_expert(copy_sql, f)
+            conn.commit()  # Added commit after each import
             print(f"✅ Imported {len(df)} rows into {table_name}.")
         except Exception as e:
             print(f"❌ Error importing {table_name}: {e}")
+            conn.rollback()  # Rollback on error
 
     os.remove(tmp_path)
 
