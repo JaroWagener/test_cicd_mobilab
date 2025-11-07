@@ -1,39 +1,51 @@
 name: CSV Import CI/CD
 
 on:
-    push:
-        paths:
-            -'csv/**'
-            -'import_csvs.py'
-        branches: 
-            - main
+  push:
+    paths:
+      - 'csv/**'        # Trigger only if CSV files change
+      - 'import_csvs.py'  # Or if the import script changes
+    branches:
+      - main             # Run on pushes to main
+
 jobs:
-    import_csvs:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v3
+  import_csv:
+    runs-on: ubuntu-latest
 
-            - name: Set up Python
-              uses: actions/setup-python@v4
-              with:
-                python-version: '3.12'
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-            - name: Install dependencies
-             run: |
-                if [ -z "$(ls csv/*.csv 2>/dev/null)" ]; then
-                echo "❌ No CSV files found!"
-                exit 1
-                fi
-                echo "✅ CSV files present"
-            
-            - name: Import CSVs to PostgreSQL
-              env:
-                DB_NAME: ${{ secrets.DB_NAME }}
-                DB_USER: ${{ secrets.DB_USER }}
-                DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-                DB_HOST: ${{ secrets.DB_HOST }}
-                DB_PORT: ${{ secrets.DB_PORT }}
-                CSV_DIR: ${{ github.workspace }}/csv
-              run: |
-                python import_csvs.py
+      # Step 2: Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Step 4: Run pre-checks (example: check CSVs exist)
+      - name: Check CSV files
+        run: |
+          if [ -z "$(ls csv/*.csv 2>/dev/null)" ]; then
+            echo "❌ No CSV files found!"
+            exit 1
+          fi
+          echo "✅ CSV files present"
+
+      # Step 5: Run import script
+      - name: Import CSVs to PostgreSQL
+        env:
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          CSV_DIR: ${{ github.workspace }}/csv
+        run: |
+          python import_csvs.py
