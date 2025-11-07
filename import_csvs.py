@@ -11,7 +11,8 @@ DB_CONFIG = {
     "user": os.getenv("DB_USER"),
     "password": os.getenv("DB_PASSWORD"),
     "host": os.getenv("DB_HOST", "localhost"),
-    "port": int(os.getenv("DB_PORT", 5432))
+    "port": int(os.getenv("DB_PORT", 5432)),
+    "sslmode": "require"
 }
 
 CSV_DIR = os.getenv("CSV_DIR")
