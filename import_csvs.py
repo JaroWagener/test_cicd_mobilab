@@ -5,13 +5,33 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Debug: Print configuration (without password)
+# More detailed debugging
 print("🔍 Checking configuration...")
-print(f"   DB_USER: {os.getenv('DB_USER')}")
-print(f"   DB_HOST: {os.getenv('DB_HOST')}")
-print(f"   DB_PORT: {os.getenv('DB_PORT', 5432)}")
-print(f"   DB_NAME: {os.getenv('DB_NAME')}")
-print(f"   DB_PASSWORD: {'*' * len(os.getenv('DB_PASSWORD', '')) if os.getenv('DB_PASSWORD') else 'NOT SET'}")
+db_user = os.getenv('DB_USER')
+db_password = os.getenv('DB_PASSWORD')
+db_host = os.getenv('DB_HOST')
+db_port = os.getenv('DB_PORT', '5432')
+db_name = os.getenv('DB_NAME')
+
+print(f"   DB_USER: '{db_user}' (length: {len(db_user) if db_user else 0})")
+print(f"   DB_HOST: '{db_host}' (length: {len(db_host) if db_host else 0})")
+print(f"   DB_PORT: '{db_port}'")
+print(f"   DB_NAME: '{db_name}' (length: {len(db_name) if db_name else 0})")
+print(f"   DB_PASSWORD: {'*' * len(db_password) if db_password else 'NOT SET'} (length: {len(db_password) if db_password else 0})")
+
+# Check for whitespace issues
+if db_user and (db_user != db_user.strip()):
+    print("   ⚠️  WARNING: DB_USER has leading/trailing whitespace!")
+    db_user = db_user.strip()
+if db_password and (db_password != db_password.strip()):
+    print("   ⚠️  WARNING: DB_PASSWORD has leading/trailing whitespace!")
+    db_password = db_password.strip()
+if db_host and (db_host != db_host.strip()):
+    print("   ⚠️  WARNING: DB_HOST has leading/trailing whitespace!")
+    db_host = db_host.strip()
+if db_name and (db_name != db_name.strip()):
+    print("   ⚠️  WARNING: DB_NAME has leading/trailing whitespace!")
+    db_name = db_name.strip()
 
 CSV_DIR = os.getenv("CSV_DIR")
 
@@ -20,21 +40,31 @@ print("\n🔌 Attempting to connect to database...")
 # === Connect to Neon PostgreSQL via psycopg2 ===
 try:
     conn = psycopg2.connect(
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        host=os.getenv("DB_HOST"),
-        port=os.getenv("DB_PORT", 5432),
-        database=os.getenv("DB_NAME"),
-        sslmode='require'  # Required for Neon
+        user=db_user,
+        password=db_password,
+        host=db_host,
+        port=db_port,
+        database=db_name,
+        sslmode='require',
+        connect_timeout=10
     )
     print("✅ Successfully connected to database!")
-except Exception as e:
+except psycopg2.OperationalError as e:
     print(f"❌ Connection failed: {e}")
-    print("\n💡 Troubleshooting tips:")
-    print("   1. Verify your database credentials in GitHub Secrets")
-    print("   2. Ensure credentials don't have extra spaces/newlines")
-    print("   3. Check if the Neon database is active (not suspended)")
-    print("   4. Verify the user has CONNECT privileges")
+    print("\n💡 Common causes of SASL authentication failures:")
+    print("   1. Incorrect password - Double-check in Neon dashboard")
+    print("   2. Wrong username format - Should it include @project?")
+    print("   3. Database suspended - Check Neon console")
+    print("   4. IP not whitelisted - Check Neon's IP allowlist settings")
+    print("   5. Role doesn't exist or has wrong permissions")
+    print("\n📝 Next steps:")
+    print("   → Go to your Neon dashboard")
+    print("   → Click 'Connection Details'")
+    print("   → Copy EACH field individually (user, password, host, database)")
+    print("   → Update GitHub Secrets with EXACT values (no quotes, no spaces)")
+    raise
+except Exception as e:
+    print(f"❌ Unexpected error: {e}")
     raise
 
 cur = conn.cursor()
@@ -99,11 +129,11 @@ for file in sorted(os.listdir(CSV_DIR)):
     with open(tmp_path, "r", encoding="utf-8") as f:
         try:
             cur.copy_expert(copy_sql, f)
-            conn.commit()  # Commit after each import
+            conn.commit()
             print(f"✅ Imported {len(df)} rows into {table_name}.")
         except Exception as e:
             print(f"❌ Error importing {table_name}: {e}")
-            conn.rollback()  # Rollback on error
+            conn.rollback()
 
     os.remove(tmp_path)
 
