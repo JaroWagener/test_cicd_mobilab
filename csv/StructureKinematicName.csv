@@ -1,0 +1,17 @@
+_id;sknName;sknNameEn;sknIsSelectable
+202;wandelen;walking;1
+203;"knielen; hurken (statisch)";kneeling / crouching static;1
+204;"knielen; hurken (repetitief)";kneeling / crouching repetitive;1
+301;rechtop;upright;1
+302;voorovergebogen statisch;bent forward static;1
+303;voorovergebogen repetitief;bent forward repetitive;1
+304;sterk voorovergebogen statisch;strongly bent forward static;1
+305;sterk voorovergebogen repetitief;strongly bent forward repetitive;1
+401;elleboog op of boven schouderniveau statisch;elbow at or above shoulder level static;1
+402;elleboog op of boven schouderniveau repetitief;elbow at or above shoulder level repetitive;1
+403;handen boven hoofdniveau statisch;hands above head level static;1
+201;handen boven hoofdniveau repetitief;hands above head level repetitive;1
+406;statische acties bovenste lidmaat;upper limb static actions;1
+407;dynamische acties bovenste lidmaat;upper limb dynamic actions;1
+601;pols ulnaire deviatie > 15? of radiale deviatie > 20?;wrist ulnar deviation > 15? or radial deviation > 20?;1
+602;pols flexie/extensie > 45?;wrist flexion/extension > 45?;1
