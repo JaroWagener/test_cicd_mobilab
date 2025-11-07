@@ -1,0 +1,39 @@
+name: CSV Import CI/CD
+
+on:
+    push:
+        paths:
+            -'csv/**'
+            -'import_csvs.py'
+        branches: 
+            - main
+jobs:
+    import_csvs:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v3
+
+            - name: Set up Python
+              uses: actions/setup-python@v4
+              with:
+                python-version: '3.12'
+
+            - name: Install dependencies
+             run: |
+                if [ -z "$(ls csv/*.csv 2>/dev/null)" ]; then
+                echo "❌ No CSV files found!"
+                exit 1
+                fi
+                echo "✅ CSV files present"
+            
+            - name: Import CSVs to PostgreSQL
+              env:
+                DB_NAME: ${{ secrets.DB_NAME }}
+                DB_USER: ${{ secrets.DB_USER }}
+                DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+                DB_HOST: ${{ secrets.DB_HOST }}
+                DB_PORT: ${{ secrets.DB_PORT }}
+                CSV_DIR: ${{ github.workspace }}/csv
+              run: |
+                python import_csvs.py
