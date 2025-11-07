@@ -1,8 +1,7 @@
 import os
-import pg8000
+import psycopg2
 import pandas as pd
 from dotenv import load_dotenv
-import ssl
 
 load_dotenv()
 
@@ -14,30 +13,20 @@ print(f"   DB_PORT: {os.getenv('DB_PORT', 5432)}")
 print(f"   DB_NAME: {os.getenv('DB_NAME')}")
 print(f"   DB_PASSWORD: {'*' * len(os.getenv('DB_PASSWORD', '')) if os.getenv('DB_PASSWORD') else 'NOT SET'}")
 
-# Create SSL context for Neon
-ssl_context = ssl.create_default_context()
-ssl_context.check_hostname = False
-ssl_context.verify_mode = ssl.CERT_NONE
-
-DB_CONFIG = {
-    "user": os.getenv("DB_USER"),
-    "password": os.getenv("DB_PASSWORD"),
-    "host": os.getenv("DB_HOST"),
-    "port": int(os.getenv("DB_PORT", 5432)),
-    "database": os.getenv("DB_NAME"),
-    "ssl_context": ssl_context  # Add SSL context for Neon
-}
-
-# Remove any None values that might cause issues
-DB_CONFIG = {k: v for k, v in DB_CONFIG.items() if v is not None}
-
 CSV_DIR = os.getenv("CSV_DIR")
 
 print("\n🔌 Attempting to connect to database...")
 
-# === Connect to Neon PostgreSQL via pg8000 ===
+# === Connect to Neon PostgreSQL via psycopg2 ===
 try:
-    conn = pg8000.connect(**DB_CONFIG)
+    conn = psycopg2.connect(
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        host=os.getenv("DB_HOST"),
+        port=os.getenv("DB_PORT", 5432),
+        database=os.getenv("DB_NAME"),
+        sslmode='require'  # Required for Neon
+    )
     print("✅ Successfully connected to database!")
 except Exception as e:
     print(f"❌ Connection failed: {e}")
@@ -58,9 +47,11 @@ def is_intermediate_table(filename):
 def truncate_table(cursor, table_name):
     try:
         cursor.execute(f"TRUNCATE TABLE {table_name} RESTART IDENTITY CASCADE;")
+        conn.commit()
         print(f"🗑️ Table {table_name} emptied.")
     except Exception as e:
         print(f"❌ Error truncating {table_name}: {e}")
+        conn.rollback()
 
 # === Main import loop ===
 for file in sorted(os.listdir(CSV_DIR)):
