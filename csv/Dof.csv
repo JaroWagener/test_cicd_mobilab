@@ -17,4 +17,4 @@ _id;nameNeg;dofDirection;namePos;dofName
 18;ulnaire deviatie van de pols;AddAbd;radiale deviatie van de pols;Radiale(+)/Ulnaire(-) Deviatie_Pols
 19;extensie van de knie;ExtFlex;flexie van de knie;Flexie(+)/Extensie(-)_Knie
 20;endorotatie van de knie;EndoExo;exorotatie van de knie;Exo(+)/Endo(-)rotatie_Knie
-21;plantairflexie van de enkel;ExtFlex;dorsiflexie van de enkel;Dorsi(+)/Plantair(-)flexie_Enkel
+21;plantairflexie van dse enkel;ExtFlex;dorsiflexie van de enkel;Dorsi(+)/Plantair(-)flexie_Enkel
