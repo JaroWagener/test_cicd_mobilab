@@ -32,6 +32,13 @@ jobs:
 
       # Step 4: Run unit tests
       - name: Run unit tests
+        env:
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          CSV_DIR: ${{ github.workspace }}/csv
         run: |
           python -m pytest test_csv_import.py -v
           echo "✅ All tests passed"
