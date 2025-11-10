@@ -30,7 +30,13 @@ jobs:
             pip install -r requirements.txt
 
 
-      # Step 4: Run pre-checks (example: check CSVs exist)
+      # Step 4: Run unit tests
+      - name: Run unit tests
+        run: |
+          python -m pytest test_csv_import.py -v
+          echo "✅ All tests passed"
+
+      # Step 5: Run pre-checks (example: check CSVs exist)
       - name: Check CSV files
         run: |
           if [ -z "$(ls csv/*.csv 2>/dev/null)" ]; then
@@ -39,7 +45,7 @@ jobs:
           fi
           echo "✅ CSV files present"
 
-      # Step 5: Run import script
+      # Step 6: Run import script
       - name: Import CSVs to PostgreSQL
         env:
           DB_NAME: ${{ secrets.DB_NAME }}
