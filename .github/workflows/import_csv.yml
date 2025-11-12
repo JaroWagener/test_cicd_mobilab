@@ -63,3 +63,11 @@ jobs:
           CSV_DIR: ${{ github.workspace }}/csv
         run: |
           python import_csvs.py
+
+      - name: Upload import results
+        uses: actions/upload-artifact@v4
+        with:
+          name: csv-import-results
+          path: |
+            import_results.log
+            output/
