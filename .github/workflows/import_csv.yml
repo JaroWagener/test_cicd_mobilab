@@ -62,9 +62,11 @@ jobs:
           DB_PORT: ${{ secrets.DB_PORT }}
           CSV_DIR: ${{ github.workspace }}/csv
         run: |
-          python import_csvs.py
-
+          python import_csvs.py > import_results.log 2>&1
+          mkdir -p output
+          echo "CSV import completed successfully" > output/summary.txt
       - name: Upload import results
+        if: always()  # ensures it runs even if the import fails
         uses: actions/upload-artifact@v4
         with:
           name: csv-import-results
