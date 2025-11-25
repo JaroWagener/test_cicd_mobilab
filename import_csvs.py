@@ -4,25 +4,6 @@ import pandas as pd
 from dotenv import load_dotenv
 from neo4j import GraphDatabase
 import sys
-from datetime import datetime
-
-# === Log everything printed to terminal ===
-log_filename = f"import_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
-
-class Tee(object):
-    def __init__(self, *files):
-        self.files = files
-    def write(self, obj):
-        for f in self.files:
-            f.write(obj)
-            f.flush()
-    def flush(self):
-        for f in self.files:
-            f.flush()
-
-log_file = open(log_filename, "w", encoding="utf-8")
-sys.stdout = Tee(sys.stdout, log_file)
-sys.stderr = Tee(sys.stderr, log_file)
 
 load_dotenv()
 
