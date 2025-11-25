@@ -1,17 +1,40 @@
-_id;sknName;sknNameEn;sknIsSelectable
-202;wandelen;walking;1
-203;"knielen; hurken (statisch)";kneeling / crouching static;1
-204;"knielen; hurken (repetitief)";kneeling / crouching repetitive;1
-301;rechtop;upright;1
-302;voorovergebogen statisch;bent forward static;1
-303;voorovergebogen repetitief;bent forward repetitive;1
-304;sterk voorovergebogen statisch;strongly bent forward static;1
-305;sterk voorovergebogen repetitief;strongly bent forward repetitive;1
-401;elleboog op of boven schouderniveau statisch;elbow at or above shoulder level static;1
-402;elleboog op of boven schouderniveau repetitief;elbow at or above shoulder level repetitive;1
-403;handen boven hoofdniveau statisch;hands above head level static;1
-201;handen boven hoofdniveau repetitief;hands above head level repetitive;1
-406;statische acties bovenste lidmaat;upper limb static actions;1
-407;dynamische acties bovenste lidmaat;upper limb dynamic actions;1
-601;pols ulnaire deviatie > 15? of radiale deviatie > 20?;wrist ulnar deviation > 15? or radial deviation > 20?;1
-602;pols flexie/extensie > 45?;wrist flexion/extension > 45?;1
+_id;structureKinematicNameName;structureKinematicNameNameEn;structureKinematicNameIsSelectable
+205;staan;standing;x
+206;wandelen;walking;x
+207;knielen, hurken (statisch);kneeling / crouching static;x
+208;knielen, hurken (repetitief);kneeling / crouching repetitive;x
+209;liggen;lying;x
+210;zitten;sitting;x
+211;zitten repetitief; sitting repetitive;x
+212;steun (staan);support (standing)
+213;rugsteun (zitten);backsupport (sitting)
+214;geen steun;no support
+215;rechtop;upright;x
+216;voorovergebogen statisch;bent forward static;x
+217;voorovergebogen repetitief;bent forward repetitive;x
+218;sterk voorovergebogen statisch;strongly bent forward static;x
+219;sterk voorovergebogen repetitief;strongly bent forward repetitive;x
+220;elleboog op of boven schouderniveau statisch;elbow at or above shoulder level static;x
+221;elleboog op of boven schouderniveau repetitief;elbow at or above shoulder level repetitive;x
+222;handen boven hoofdniveau statisch;hands above head level static;x
+223;handen boven hoofdniveau repetitief;hands above head level repetitive;x
+224;geen risicovolle armbewegingen;no hazardous arm movements
+225;statische acties bovenste lidmaat;upper limb static actions;x
+226;dynamische acties bovenste lidmaat;upper limb dynamic actions;x
+227;romprotatie, statisch;trunk rotation, static;x
+228;romprotatie, dynamisch;trunk rotation, dynamic;x
+229;geen romprotatie;no trunk rotation;x
+230;zijwaartse buiging statisch;lateral bending static;x
+231;zijwaartse buiging dynamisch;lateral bending dynamic;x
+232;geen zijwaartse buiging;no lateral bending;x
+233;ver reiken statisch;far reach static;x
+234;ver reiken dynamisch;far reach dynamic;x
+235;niet ver reiken;no far reach;x
+236;pols ulnaire deviatie > 15� of radiale deviatie > 20�;wrist ulnar deviation > 15� or radial deviation > 20�;x
+237;pols flexie/extensie > 45�;wrist flexion/extension > 45�;x
+238;elleboog pronatie/supinatie > 60�;elbow pronation/supination > 60�;x
+239;elleboog flexie/extensie > 60�;elbow flexion/extension > 60�;x
+240;schouderextensie > 20�;shoulder extension > 20�;x
+241;schouderabductie > 45�;shoulder abduction > 45�;x
+242;schouderflexie > 80�;shoulder flexion > 80�;x
+243;geen ongemakkelijke posities bovenste lidmaat;no upper limb awkward positions;x

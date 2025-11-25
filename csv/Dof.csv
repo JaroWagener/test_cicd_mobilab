@@ -1,21 +1,20 @@
-_id;nameNeg;dofDirection;namePos;dofName
-1;extensie van de rug;ExtFlex;flexie van de rug;Flexie(+)/Extensie(-)_Rug
-2;lateroflexie van de rug naar links;AddAbd;lateroflexie van de rug naar rechts;Lateroflexie (Rechts(+)/Links(-))_Rug
-3;rotatie van de rug naar links;EndoExo;rotatie van de rug naar rechts;Rotatie (Rechts(+)/Links(-))_Rug
-4;extensie van de heup;ExtFlex;flexie van de heup;Flexie(+)/Extensie(-)_Heup
-5;adductie van de heup;AddAbd;abductie van de heup;Abductie(+)/Adductie(-)_Heup
-6;endorotatie van de heup;EndoExo;exorotatie van de heup;Exo(+)/Endo(-)rotatie_Heup
-9;extensie van de nek;ExtFlex;flexie van de nek;Flexie(+)/Extensie(-)_Nek
-10;lateroflexie van de nek naar links;AddAbd;lateroflexie van de nek naar rechts;Lateroflexie (Rechts(+)/Links(-))_Nek
-11;rotatie van de nek naar links;EndoExo;rotatie van de nek naar rechts;Rotatie (Rechts(+)/Links(-))_Nek
-12;retroflexie van de schouder;ExtFlex;anteflexie van de schouder;Anteflexie(+)/Retroflexie(-)_Schouder
-13;adductie van de schouder;AddAbd;abductie van de schouder;Abductie(+)/Adductie(-)_Schouder
-14;endorotatie van de schouder;EndoExo;exorotatie van de schouder;Exo(+)/Endo(-)rotatie_Schouder
-15;extensie van de elleboog;ExtFlex;flexie van de elleboog;Flexie(+)/Extensie(-)_Elleboog
-16;pronatie van de pols;EndoExo;supinatie van de pols;Supinatie(+)/Pronatie(-)_Pols
-17;dorsiflexie van de pols;ExtFlex;palmairflexie van de pols;Palmair(+)/Dorsi(-)flexie_Pols
-18;ulnaire deviatie van de pols;AddAbd;radiale deviatie van de pols;Radiale(+)/Ulnaire(-) Deviatie_Pols
-19;extensie van de knie;ExtFlex;flexie van de knie;Flexie(+)/Extensie(-)_Knie
-20;endorotatie van de knie;EndoExo;exorotatie van de knie;Exo(+)/Endo(-)rotatie_Knie
-21;plantairflexie van dse enkel;ExtFlex;dorsiflexie van de enkel;Dorsi(+)/Plantair(-)flexie_Enkel
-22;Dit is een test;test;test;test
+_id;nameNeg;namePos;dofName
+21;extensie van de rug, dofDirection: ExtFlex;flexie van de rug;Flexie(+)/Extensie(-)_Rug
+22;lateroflexie van de rug naar links, dofDirection: AddAbd;lateroflexie van de rug naar rechts;Lateroflexie (Rechts(+)/Links(-))_Rug
+23;rotatie van de rug naar links, dofDirection: EndoExo;rotatie van de rug naar rechts;Rotatie (Rechts(+)/Links(-))_Rug
+24;extensie van de heup, dofDirection: ExtFlex;flexie van de heup;Flexie(+)/Extensie(-)_Heup
+25;adductie van de heup, dofDirection: AddAbd;abductie van de heup;Abductie(+)/Adductie(-)_Heup
+26;endorotatie van de heup, dofDirection: EndoExo;exorotatie van de heup;Exo(+)/Endo(-)rotatie_Heup
+27;extensie van de nek, dofDirection: ExtFlex;flexie van de nek;Flexie(+)/Extensie(-)_Nek
+28;lateroflexie van de nek naar links, dofDirection: AddAbd;lateroflexie van de nek naar rechts;Lateroflexie (Rechts(+)/Links(-))_Nek
+29;rotatie van de nek naar links, dofDirection: EndoExo;rotatie van de nek naar rechts;Rotatie (Rechts(+)/Links(-))_Nek
+30;retroflexie van de schouder, dofDirection: ExtFlex;anteflexie van de schouder;Anteflexie(+)/Retroflexie(-)_Schouder
+31;adductie van de schouder, dofDirection: AddAbd;abductie van de schouder;Abductie(+)/Adductie(-)_Schouder
+32;endorotatie van de schouder, dofDirection: EndoExo;exorotatie van de schouder;Exo(+)/Endo(-)rotatie_Schouder
+33;extensie van de elleboog, dofDirection: ExtFlex;flexie van de elleboog;Flexie(+)/Extensie(-)_Elleboog
+34;pronatie van de pols, dofDirection: EndoExo;supinatie van de pols;Supinatie(+)/Pronatie(-)_Pols
+35;dorsiflexie van de pols, dofDirection: ExtFlex;palmairflexie van de pols;Palmair(+)/Dorsi(-)flexie_Pols
+36;ulnaire deviatie van de pols, dofDirection: AddAbd;radiale deviatie van de pols;Radiale(+)/Ulnaire(-) Deviatie_Pols
+37;extensie van de knie, dofDirection: ExtFlex;flexie van de knie;Flexie(+)/Extensie(-)_Knie
+38;endorotatie van de knie, dofDirection: EndoExo;exorotatie van de knie;Exo(+)/Endo(-)rotatie_Knie
+39;plantairflexie van de enkel, dofDirection: ExtFlex;dorsiflexie van de enkel;Dorsi(+)/Plantair(-)flexie_Enkel

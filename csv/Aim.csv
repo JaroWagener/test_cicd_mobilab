@@ -1,0 +1,14 @@
+_id;aimIsSelectable;aimNameEn;aimDescription
+190;x;repositioning, aimName: herpositioneren; eerder horizontaal, niet specifiek naar boven of naar onder
+191;x;repositioning lifting, aimName: herpositioneren opwaarts
+192;x;repositioning lowering, aimName: herpositioneren neerwaarts
+193;x;carrying, aimName: dragen
+194;x;holding, aimName: vasthouden
+195;x;pushing and pulling long, aimName: duwen en trekken lang
+196;x;pushing and pulling short, aimName: duwen en trekken kort
+197;x;push or squeeze eg clips, plugs, pliers, aimName: duwen of knijpen bv. clips, pluggen, tang
+198;x;power grip eg pliers, aimName: krachtgreep bv. tang
+199;x;contact grip eg ball of thumb, aimName: contactgreep bv. duimmuis
+200;x;moderate pinch (thumb to > 2 fingers), aimName: matige knijpgreep (duim naar > 2 vingers)
+201;x;strong pinch (thumb to 1 or 2 fingers), aimName: sterke knijpgreep (duim naar 1 of 2 vingers)
+202;x;finger push eg thumb, index, aimName: vingerduw bv. duim, wijsvinger

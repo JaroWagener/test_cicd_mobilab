@@ -1,12 +1,12 @@
 _id;partName;partType
-1;Hoofd;Body
-2;Ground;Object
-3;Hand;Body
-4;Onderarm;Body
-5;Bovenarm;Body
-6;Romp;Body
-8;Object;Object
-9;VoetUpdate;Body
-10;Bekken;Body
-11;Bovenbeen;Body
-12;Onderbeen update;Body
+179;Hoofd;Body
+180;Ground;Object
+181;Hand;Body
+182;Onderarm;Body
+183;Bovenarm;Body
+184;Romp;Body
+185;Object;Object
+186;Voet;Body
+187;Bekken;Body
+188;Bovenbeen;Body
+189;Onderbeen;Body
