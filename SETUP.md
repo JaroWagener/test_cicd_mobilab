@@ -4,7 +4,7 @@ Deze handleiding beschrijft hoe je het project lokaal kunt opzetten en gebruiken
 
 ## Vereisten
 
-- **Docker Desktop** (voor PostgreSQL en pgAdmin containers)
+- **Docker Desktop** (voor PostgreSQL, pgAdmin en Neo4j containers)
 - **Python 3.12** of hoger
 - **Git** (optioneel, voor version control)
 
@@ -214,7 +214,58 @@ git config --list
 
 ## Stap 1: Docker Containers Opzetten
 
-Het project gebruikt Docker Compose om PostgreSQL (met Apache AGE) en pgAdmin te beheren.
+Het project gebruikt Docker Compose om PostgreSQL (met Apache AGE), pgAdmin en Neo4j te beheren.
+
+### Docker Compose Configuratie
+
+Voeg Neo4j toe aan je `docker-compose.yml`:
+
+```yaml
+version: '3.8'
+
+services:
+  postgres:
+    image: apache/age:latest
+    container_name: age-postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin1234
+      POSTGRES_DB: testdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin1234
+    ports:
+      - "8080:80"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  neo4j:
+    image: neo4j:latest
+    container_name: neo4j-graph
+    environment:
+      NEO4J_AUTH: neo4j/admin1234
+      NEO4J_PLUGINS: '["apoc"]'
+    ports:
+      - "7474:7474"  # HTTP
+      - "7687:7687"  # Bolt
+    volumes:
+      - neo4jdata:/data
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  neo4jdata:
+```
 
 ### Docker Compose Starten
 
@@ -224,7 +275,8 @@ Zorg dat je in de project directory bent en start de containers:
 docker-compose up -d
 ```
 
-Dit start beide containers op de achtergrond met de volgende configuratie:
+Dit start alle drie containers op de achtergrond met de volgende configuratie:
+
 - **PostgreSQL (Apache AGE):**
   - Container naam: `age-postgres`
   - Port: `5432`
@@ -239,9 +291,17 @@ Dit start beide containers op de achtergrond met de volgende configuratie:
   - Email: `admin@admin.com`
   - Wachtwoord: `admin1234`
 
+- **Neo4j:**
+  - Container naam: `neo4j-graph`
+  - HTTP Port: `7474` (Browser UI: `http://localhost:7474`)
+  - Bolt Port: `7687` (Database connection)
+  - Gebruiker: `neo4j`
+  - Wachtwoord: `admin1234`
+  - Data persistentie via volume `neo4jdata`
+
 ### Containers Verifiëren
 
-Controleer of beide containers draaien:
+Controleer of alle drie containers draaien:
 
 ```bash
 docker-compose ps
@@ -252,7 +312,7 @@ Of gebruik:
 docker ps
 ```
 
-Je zou twee containers moeten zien: `age-postgres` en `pgadmin`.
+Je zou drie containers moeten zien: `age-postgres`, `pgadmin` en `neo4j-graph`.
 
 ### Logs Bekijken
 
@@ -268,11 +328,16 @@ docker-compose logs postgres
 # Alleen pgAdmin
 docker-compose logs pgadmin
 
+# Alleen Neo4j
+docker-compose logs neo4j
+
 # Follow mode (real-time)
 docker-compose logs -f
 ```
 
-## Stap 2: pgAdmin Configureren
+## Stap 2: Database Interfaces Configureren
+
+### pgAdmin Configureren (PostgreSQL)
 
 1. Open je browser en ga naar `http://localhost:8080`
 2. Log in met:
@@ -291,7 +356,29 @@ docker-compose logs -f
      - Save password: ✓
 4. Klik op "Save"
 
-**Let op:** Omdat beide containers in hetzelfde Docker netwerk draaien (via docker-compose), gebruik je `postgres` als hostname in plaats van `localhost` of `host.docker.internal`.
+**Let op:** Omdat alle containers in hetzelfde Docker netwerk draaien (via docker-compose), gebruik je `postgres` als hostname in plaats van `localhost` of `host.docker.internal`.
+
+### Neo4j Browser Configureren
+
+1. Open je browser en ga naar `http://localhost:7474`
+2. Je ziet de Neo4j Browser interface
+3. Connect to Neo4j:
+   - **Connect URL:** `neo4j://localhost:7687` (of gebruik `bolt://localhost:7687`)
+   - **Username:** `neo4j`
+   - **Password:** `admin1234`
+4. Klik op "Connect"
+
+**Verificatie:**
+```cypher
+// Test query - tel aantal nodes
+MATCH (n) RETURN count(n) as nodeCount;
+
+// Bekijk alle node labels
+CALL db.labels();
+
+// Bekijk alle relationship types
+CALL db.relationshipTypes();
+```
 
 ## Stap 3: Python Environment Opzetten
 
@@ -320,6 +407,7 @@ De volgende packages worden geïnstalleerd:
 - `psycopg2-binary` - PostgreSQL database adapter
 - `pandas` - CSV data processing
 - `python-dotenv` - Environment variables
+- `neo4j` - Neo4j database driver
 - `pytest` - Testing framework
 - `unittest-xml-reporting` - Test reporting
 
@@ -328,7 +416,7 @@ De volgende packages worden geïnstalleerd:
 Maak een `.env` bestand aan in de root van het project:
 
 ```bash
-# Database configuratie (moet overeenkomen met docker-compose.yml)
+# PostgreSQL Database configuratie (moet overeenkomen met docker-compose.yml)
 DB_USER=admin
 DB_PASSWORD=admin1234
 DB_HOST=localhost
@@ -338,13 +426,18 @@ DB_NAME=testdb
 # CSV directory (absoluut pad of relatief)
 CSV_DIR=./csv
 
-# Neo4j (optioneel - laat leeg als je alleen AGE gebruikt)
-NEO4J_URI=
-NEO4J_USER=
-NEO4J_PASSWORD=
+# Neo4j configuratie
+NEO4J_URI=neo4j://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=admin1234
 ```
 
 **Let op:** Deze waarden komen overeen met de configuratie in `docker-compose.yml`. Vanaf je lokale machine (buiten Docker) gebruik je `localhost` als host.
+
+**Belangrijke informatie over Neo4j:**
+- Als `NEO4J_URI`, `NEO4J_USER` en `NEO4J_PASSWORD` zijn ingevuld, worden de data **dubbel** opgeslagen: in zowel PostgreSQL (AGE) als Neo4j
+- Als deze variabelen leeg zijn, wordt alleen PostgreSQL (AGE) gebruikt
+- Neo4j URI kan ook `bolt://localhost:7687` zijn (oudere versies)
 
 ## Stap 5: Database Schema Initialiseren (Optioneel)
 
@@ -380,13 +473,21 @@ python import_csvs.py
 ```
 
 De import voert de volgende stappen uit:
-1. **Bestaande data wissen** - Verwijdert oude AGE graph en PostgreSQL tabellen
-2. **Nieuwe graph aanmaken** - Maakt een verse `exo_graph`
-3. **FASE 1: Nodes importeren** - Importeert alle entiteiten (Exo, Aim, Dof, etc.)
-4. **FASE 2: Edges importeren** - Maakt relaties tussen entiteiten
+1. **Bestaande data wissen** - Verwijdert oude data uit:
+   - AGE graph (PostgreSQL)
+   - PostgreSQL tabellen
+   - Neo4j database (als geconfigureerd)
+2. **Nieuwe graph aanmaken** - Maakt een verse `exo_graph` in AGE
+3. **FASE 1: Nodes importeren** - Importeert alle entiteiten (Exo, Aim, Dof, etc.) naar:
+   - PostgreSQL tabellen (relationele data)
+   - AGE graph (graph data)
+   - Neo4j (native graph data, als geconfigureerd)
+4. **FASE 2: Edges importeren** - Maakt relaties tussen entiteiten in alle databases
 
-**Verwachte output:**
+**Verwachte output (met Neo4j):**
 ```
+Clearing Neo4j database...
+Neo4j database cleared successfully!
 Clearing AGE graph 'exo_graph'...
 AGE graph cleared successfully!
 AGE graph 'exo_graph' created successfully!
@@ -402,12 +503,33 @@ Inserting 20 nodes for table: Aim
 
 ...
 
-[OK] Imported into AGE successfully!
+[OK] Imported into AGE + Neo4j successfully!
+```
+
+**Verwachte output (zonder Neo4j):**
+```
+⚠ Neo4j credentials not configured. Continuing with AGE only...
+Clearing AGE graph 'exo_graph'...
+AGE graph cleared successfully!
+AGE graph 'exo_graph' created successfully!
+
+============================================================
+PHASE 1: Creating all nodes
+============================================================
+
+Processing file: Aim.csv
+Created PostgreSQL table: Aim
+Inserting 20 nodes for table: Aim
+[OK] Successfully inserted 20 nodes into PostgreSQL and AGE
+
+...
+
+[OK] Imported into AGE successfully! (Neo4j was not available)
 ```
 
 ## Stap 7: Data Verifiëren
 
-### Via pgAdmin
+### Via pgAdmin (PostgreSQL)
 
 1. Open pgAdmin en navigeer naar je database
 2. Open Query Tool
@@ -417,6 +539,11 @@ Inserting 20 nodes for table: Aim
 LOAD 'age';
 SET search_path = ag_catalog, "$user", public;
 ```
+
+### Via Neo4j Browser
+
+1. Open Neo4j Browser: `http://localhost:7474`
+2. Voer Cypher queries uit in de command bar
 
 ### Test Queries
 
@@ -457,6 +584,41 @@ FROM Exo e
 JOIN HAS_AIM ha ON e._id = ha.exoId
 JOIN Aim a ON ha.aimId = a._id
 LIMIT 10;
+```
+
+**Neo4j Native Cypher Queries:**
+```cypher
+// Tel alle nodes
+MATCH (n)
+RETURN count(n) as total_nodes;
+
+// Bekijk alle node types
+MATCH (n)
+RETURN DISTINCT labels(n) as node_types, count(*) as count;
+
+// Vind exoskeletten met hun doelstellingen
+MATCH (e:Exo)-[:HAS_AIM]->(a:Aim)
+RETURN e.exoName, a.aimDescription
+LIMIT 10;
+
+// Vind exoskeletten die assisteren in DOFs
+MATCH (e:Exo)-[r:ASSISTS_IN]->(d:Dof)
+RETURN e.exoName, d.dofDescription, r.direction
+LIMIT 10;
+
+// Complexe graph pattern: exoskeletten met hun properties en aims
+MATCH (e:Exo)-[:HAS_PROPERTY]->(p:ExoProperty)
+MATCH (e)-[:HAS_AIM]->(a:Aim)
+RETURN e.exoName, collect(p.exoPropertyName) as properties, 
+       collect(a.aimDescription) as aims
+LIMIT 5;
+
+// Shortest path tussen twee nodes
+MATCH path = shortestPath(
+  (start:Exo {exoName: 'CarrySuit'})-[*]-(end:Part)
+)
+RETURN path
+LIMIT 1;
 ```
 
 ## Stap 8: Unit Tests Uitvoeren
@@ -507,6 +669,13 @@ Als je de ports wijzigt in `docker-compose.yml`, update dan ook `DB_PORT` in je 
 **Probleem:** AGE extensie niet geladen
 - Zorg dat je de `apache/age` image gebruikt (niet de standaard postgres image)
 - Verifieer met: `docker exec -it age-postgres psql -U admin -d testdb -c "SELECT * FROM pg_extension WHERE extname='age';"`
+
+**Probleem:** Neo4j verbinding mislukt
+- Controleer of Neo4j container draait: `docker ps | grep neo4j`
+- Bekijk Neo4j logs: `docker logs neo4j-graph`
+- Verificeer credentials in `.env` bestand
+- Test verbinding: `http://localhost:7474` in browser
+- Als Neo4j niet nodig is, laat de `NEO4J_*` variabelen leeg in `.env`
 
 **Probleem:** CSV delimiter errors
 - De script detecteert automatisch `;` of `,` als delimiter
