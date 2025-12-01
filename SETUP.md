@@ -788,11 +788,15 @@ graph TD
     E -->|✅ Passed| G[🐍 Run import_csvs.py]
     G --> H[📊 Create PostgreSQL Tables<br/>Individual Columns]
     G --> I[🕸️ Create AGE Graph Nodes<br/>exo_graph]
+    G --> N[🔷 Create Neo4j Nodes/Edges<br/>Neo4j Desktop]
     H --> J[(🐘 PostgreSQL Database<br/>testdb)]
     I --> J
-    J --> K[📈 Data in Both Formats:<br/>- SQL Tables<br/>- Graph Nodes & Edges]
+    N --> O[(🔷 Neo4j Database<br/>Neo4j Desktop)]
+    J --> K[📈 Data in Three Formats:<br/>- SQL Tables<br/>- AGE Graph<br/>- Neo4j Graph]
+    O --> K
     K --> L[🔍 Query via pgAdmin<br/>localhost:8080]
-    K --> M[💻 Query via Python Scripts<br/>psycopg2]
+    K --> M[💻 Query via Python Scripts<br/>psycopg2/neo4j]
+    K --> P[🌐 Query via Neo4j Browser<br/>localhost:7474]
     
     style A fill:#e1f5ff,stroke:#333,stroke-width:2px
     style B fill:#d4edda,stroke:#333,stroke-width:2px
@@ -803,10 +807,13 @@ graph TD
     style G fill:#74b9ff,stroke:#333,stroke-width:2px
     style H fill:#a29bfe,stroke:#333,stroke-width:2px
     style I fill:#fd79a8,stroke:#333,stroke-width:2px
+    style N fill:#6c5ce7,stroke:#333,stroke-width:2px
     style J fill:#55efc4,stroke:#333,stroke-width:2px
+    style O fill:#0984e3,stroke:#333,stroke-width:2px
     style K fill:#00b894,stroke:#333,stroke-width:2px
     style L fill:#fdcb6e,stroke:#333,stroke-width:2px
     style M fill:#e17055,stroke:#333,stroke-width:2px
+    style P fill:#00cec9,stroke:#333,stroke-width:2px
 ```
 
 ## Local Development Flow
@@ -814,28 +821,38 @@ graph TD
 ```mermaid
 graph TD
     A[👨‍💻 Developer Werkt Lokaal] --> B[🐳 Docker Compose Up<br/>Start Containers]
+    A --> B2[🔷 Start Neo4j Desktop<br/>Local DBMS]
     B --> C1[📦 PostgreSQL + AGE Container<br/>age-postgres:5432]
     B --> C2[🖥️ pgAdmin Container<br/>pgadmin:8080]
+    B2 --> C3[🔷 Neo4j Database<br/>localhost:7687]
     C1 --> D[💾 Docker Volume: pgdata<br/>Persistent Storage]
-    A --> E[⚙️ Configure .env File<br/>DB credentials]
+    C3 --> D2[💾 Neo4j Data<br/>Neo4j Desktop Storage]
+    A --> E[⚙️ Configure .env File<br/>DB + Neo4j credentials]
     E --> F[🐍 Run import_csvs.py<br/>Locally]
     F --> G[📁 Read CSV Files<br/>from csv/ folder]
     G --> H[🔄 Process with pandas<br/>Parse & Transform Data]
     H --> I1[💾 Insert into PostgreSQL Tables<br/>insert_row_postgres]
     H --> I2[🕸️ Insert into AGE Graph<br/>insert_node_age/insert_edge_age]
+    H --> I3[🔷 Insert into Neo4j<br/>insert_node_neo4j/insert_edge_neo4j]
     I1 --> C1
     I2 --> C1
+    I3 --> C3
     C1 --> J[✅ Data Available for Queries]
+    C3 --> J
     J --> K[🔍 Query via pgAdmin UI]
     J --> L[💻 Query via Python]
     J --> M[📊 SQL Queries on Tables]
-    J --> N[🕸️ Cypher Queries on Graph]
+    J --> N[🕸️ Cypher Queries on AGE/Neo4j]
+    J --> O[🌐 Query via Neo4j Browser]
     
     style A fill:#dfe6e9,stroke:#333,stroke-width:2px
     style B fill:#74b9ff,stroke:#333,stroke-width:2px
+    style B2 fill:#6c5ce7,stroke:#333,stroke-width:2px
     style C1 fill:#55efc4,stroke:#333,stroke-width:2px
     style C2 fill:#ffeaa7,stroke:#333,stroke-width:2px
+    style C3 fill:#0984e3,stroke:#333,stroke-width:2px
     style D fill:#fd79a8,stroke:#333,stroke-width:2px
+    style D2 fill:#74b9ff,stroke:#333,stroke-width:2px
     style F fill:#a29bfe,stroke:#333,stroke-width:2px
     style J fill:#00b894,stroke:#333,stroke-width:2px
 ```
@@ -864,19 +881,25 @@ graph LR
         C2[Insert PostgreSQL Row<br/>INSERT INTO]
         C3[Create AGE Node<br/>CREATE node:Label]
         C4[Create AGE Edge<br/>MATCH + CREATE]
+        C5[Create Neo4j Node<br/>Neo4j Driver]
+        C6[Create Neo4j Edge<br/>Neo4j Driver]
     end
     
     subgraph Storage["🗄️ Storage"]
         D1[(PostgreSQL Tables<br/>Relational Data)]
         D2[(AGE Graph<br/>Graph Data)]
         D3[Docker Volume<br/>pgdata]
+        D4[(Neo4j Graph<br/>Native Graph DB)]
+        D5[Neo4j Desktop<br/>Data Storage]
     end
     
     subgraph Output["📤 Query Interface"]
         E1[SQL Queries]
-        E2[Cypher Queries]
+        E2[Cypher on AGE]
         E3[Python API]
         E4[pgAdmin UI]
+        E5[Neo4j Browser]
+        E6[Cypher on Neo4j]
     end
     
     Input --> B1
@@ -888,17 +911,25 @@ graph LR
     C1 --> C2
     C1 --> C3
     B5 --> C4
+    B5 --> C5
+    B5 --> C6
     C2 --> D1
     C3 --> D2
     C4 --> D2
+    C5 --> D4
+    C6 --> D4
     D1 --> D3
     D2 --> D3
+    D4 --> D5
     D1 --> E1
     D2 --> E2
+    D4 --> E6
     D1 --> E3
     D2 --> E3
+    D4 --> E3
     E4 --> E1
     E4 --> E2
+    E5 --> E6
     
     style Input fill:#e1f5ff,stroke:#333,stroke-width:2px
     style Processing fill:#fff3cd,stroke:#333,stroke-width:2px
@@ -916,9 +947,11 @@ sequenceDiagram
     participant Pandas as pandas
     participant PG as PostgreSQL
     participant AGE as Apache AGE
+    participant Neo as Neo4j Desktop
     participant Vol as Docker Volume
+    participant NeoVol as Neo4j Storage
 
-    Note over CSV,Vol: Phase 1: Node Import
+    Note over CSV,NeoVol: Phase 1: Node Import
     CSV->>Script: Read CSV files
     Script->>Pandas: Parse with pandas
     Pandas->>Script: Return DataFrame
@@ -927,23 +960,27 @@ sequenceDiagram
         Script->>PG: Create table (if not exists)
         Script->>PG: INSERT INTO table
         Script->>AGE: CREATE (node:Label {...})
+        Script->>Neo: CREATE (node:Label {...})
     end
     
     PG->>Vol: Persist data
     AGE->>Vol: Persist graph
+    Neo->>NeoVol: Persist graph
     
-    Note over CSV,Vol: Phase 2: Edge Import
+    Note over CSV,NeoVol: Phase 2: Edge Import
     
     loop For each edge CSV
         Script->>PG: Create relationship table
         Script->>PG: INSERT INTO table
         Script->>AGE: MATCH + CREATE edge
+        Script->>Neo: MATCH + CREATE edge
     end
     
     PG->>Vol: Persist relationships
     AGE->>Vol: Persist graph edges
+    Neo->>NeoVol: Persist graph edges
     
-    Note over Script,Vol: Import Complete!
+    Note over Script,NeoVol: Import Complete!
 ```
 
 ## Database Structure
@@ -1023,39 +1060,51 @@ erDiagram
 graph LR
     subgraph UserQueries["User Queries"]
         A1[SQL Query]
-        A2[Cypher Query]
+        A2[Cypher Query AGE]
         A3[Python Script]
+        A4[Cypher Query Neo4j]
     end
     
     subgraph pgAdmin["pgAdmin Interface"]
         B1[Query Tool]
     end
     
-    subgraph Database["PostgreSQL Database"]
+    subgraph NeoBrowser["Neo4j Browser"]
+        B2[Cypher Editor]
+    end
+    
+    subgraph Database["Databases"]
         C1[PostgreSQL Tables]
         C2[AGE Graph]
+        C3[Neo4j Graph]
     end
     
     subgraph Results["Query Results"]
         D1[Tabular Data]
-        D2[Graph Patterns]
+        D2[Graph Patterns AGE]
         D3[JSON/Dict]
+        D4[Graph Visualizations]
     end
     
     A1 --> B1
     A2 --> B1
+    A4 --> B2
     A3 --> C1
     A3 --> C2
+    A3 --> C3
     
     B1 --> C1
     B1 --> C2
+    B2 --> C3
     
     C1 --> D1
     C2 --> D2
+    C3 --> D4
     A3 --> D3
     
     style UserQueries fill:#e1f5ff
     style pgAdmin fill:#fff3cd
+    style NeoBrowser fill:#d4b5ff
     style Database fill:#f8d7da
     style Results fill:#d4edda
 ```
@@ -1088,24 +1137,35 @@ graph TB
         end
     end
     
+    subgraph Neo4jDesktop["Neo4j Desktop Application"]
+        N1[Neo4j DBMS<br/>localhost:7687]
+        N2[Neo4j Browser<br/>localhost:7474]
+        N3[(Neo4j Data<br/>Local Storage)]
+    end
+    
     subgraph External["External Access"]
         E1[localhost:5432<br/>PostgreSQL]
         E2[localhost:8080<br/>pgAdmin]
-        E3[Python Scripts]
+        E3[localhost:7474<br/>Neo4j Browser]
+        E4[Python Scripts]
     end
     
     PG --> PA
     PG3 --> V1
+    N1 --> N3
     
     P1 --> PG1
     P2 --> PA1
     
     E1 --> P1
     E2 --> P2
-    E3 --> E1
+    E3 --> N2
+    E4 --> E1
+    E4 --> N1
     
     style PG fill:#cfe2ff
     style PA fill:#f8d7da
+    style Neo4jDesktop fill:#d4b5ff
     style Volumes fill:#d1ecf1
     style External fill:#d4edda
 ```
