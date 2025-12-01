@@ -70,6 +70,27 @@ cur.execute("SELECT create_graph('exo_graph');")
 conn.commit()
 print("AGE graph 'exo_graph' created successfully!")
 
+# === Create PostgreSQL tables for each node type ===
+def create_table_from_csv(table_name, csv_path):
+    """Create a PostgreSQL table with columns matching the CSV structure."""
+    with open(csv_path, 'r', encoding='utf-8') as f:
+        first_line = f.readline()
+        delimiter = ',' if ',' in first_line and ';' not in first_line else ';'
+    
+    df = pd.read_csv(csv_path, sep=delimiter, quotechar='"', escapechar="'", 
+                    skipinitialspace=True, engine='python', on_bad_lines='warn', nrows=0)
+    
+    columns = [col for col in df.columns if not str(col).startswith('Unnamed')]
+    
+    # Drop table if exists
+    cur.execute(f"DROP TABLE IF EXISTS {table_name} CASCADE;")
+    
+    # Create table with TEXT columns (can be refined later)
+    column_defs = ', '.join([f'"{col}" TEXT' for col in columns])
+    create_sql = f"CREATE TABLE {table_name} ({column_defs});"
+    cur.execute(create_sql)
+    print(f"Created PostgreSQL table: {table_name}")
+
 # === Helpers ===
 MAIN_TABLES = [
     "Aim", "AimType", "Dof", "Exo", "ExoProperty", "JointT", 
@@ -83,11 +104,33 @@ INTERMEDIATE_TABLES = [
     "TRANSFERS_FORCES_TO"
 ]
 
+# === PostgreSQL table insert ===
+def insert_row_postgres(table_name, row):
+    """Insert a row into a regular PostgreSQL table."""
+    columns = list(row.keys())
+    values = list(row.values())
+    
+    # Convert values to appropriate types
+    formatted_values = []
+    for v in values:
+        if pd.isna(v) or v == '' or v is None:
+            formatted_values.append(None)
+        else:
+            formatted_values.append(str(v))
+    
+    columns_str = ', '.join([f'"{col}"' for col in columns])
+    placeholders = ', '.join(['%s'] * len(columns))
+    
+    insert_sql = f"INSERT INTO {table_name} ({columns_str}) VALUES ({placeholders});"
+    cur.execute(insert_sql, formatted_values)
+
 # === AGE insert ===
 def insert_node_age(table_name, row):
+    # Create individual properties as separate columns
     props = ', '.join([f"{k}: {format_age_value(v)}" for k, v in row.items()])
-    cypher = f"SELECT * FROM cypher('exo_graph', $$ CREATE (:{table_name} {{{props}}}) $$) AS (n agtype);"
-    cur.execute(cypher)
+    cypher = f"CREATE (n:{table_name} {{{props}}}) RETURN n"
+    full_query = f"SELECT * FROM cypher('exo_graph', $$ {cypher} $$) AS (n agtype);"
+    cur.execute(full_query)
 
 def format_age_value(value):
     """Format value for AGE Cypher query - handle None, numbers, and strings properly."""
@@ -360,6 +403,9 @@ for file in sorted(node_files):
     print(f"Table name: {table_name}")
     print(f"{'='*60}")
     
+    # Create PostgreSQL table first
+    create_table_from_csv(table_name, csv_path)
+    
     # Auto-detect delimiter by reading first line
     with open(csv_path, 'r', encoding='utf-8') as f:
         first_line = f.readline()
@@ -391,10 +437,17 @@ for file in sorted(node_files):
         row_dict = row.to_dict()
         # Filter out unnamed columns (from trailing delimiters)
         row_dict = {k: v for k, v in row_dict.items() if not str(k).startswith('Unnamed')}
+        
+        # Insert into PostgreSQL table
+        insert_row_postgres(table_name, row_dict)
+        
+        # Insert into AGE graph
         insert_node_age(table_name, row_dict)
+        
+        # Insert into Neo4j if available
         if neo4j_available:
             insert_node_neo4j(table_name, row_dict)
-    print(f"[OK] Successfully inserted {len(df)} nodes")
+    print(f"[OK] Successfully inserted {len(df)} nodes into PostgreSQL and AGE")
 
 # Commit nodes before creating edges
 conn.commit()
@@ -412,6 +465,9 @@ for file in sorted(edge_files):
     print(f"Processing file: {file}")
     print(f"Table name: {table_name}")
     print(f"{'='*60}")
+    
+    # Create PostgreSQL table first
+    create_table_from_csv(table_name, csv_path)
     
     # Auto-detect delimiter by reading first line
     with open(csv_path, 'r', encoding='utf-8') as f:
@@ -444,7 +500,13 @@ for file in sorted(edge_files):
             continue
         
         try:
+            # Insert into PostgreSQL table
+            insert_row_postgres(table_name, row_dict)
+            
+            # Insert into AGE graph
             insert_edge_age(table_name, row_dict)
+            
+            # Insert into Neo4j if available
             if neo4j_available:
                 insert_edge_neo4j(table_name, row_dict)
             successful_rows += 1
@@ -456,7 +518,7 @@ for file in sorted(edge_files):
     
     if skipped_rows > 0:
         print(f"[WARN] Skipped {skipped_rows} rows due to errors or missing values")
-    print(f"[OK] Successfully inserted {successful_rows} edges")
+    print(f"[OK] Successfully inserted {successful_rows} edges into PostgreSQL and AGE")
     
     # Commit after each edge file
     conn.commit()
