@@ -4,7 +4,8 @@ Deze handleiding beschrijft hoe je het project lokaal kunt opzetten en gebruiken
 
 ## Vereisten
 
-- **Docker Desktop** (voor PostgreSQL, pgAdmin en Neo4j containers)
+- **Docker Desktop** (voor PostgreSQL en pgAdmin containers)
+- **Neo4j Desktop** (voor lokale Neo4j database)
 - **Python 3.12** of hoger
 - **Git** (optioneel, voor version control)
 
@@ -214,11 +215,11 @@ git config --list
 
 ## Stap 1: Docker Containers Opzetten
 
-Het project gebruikt Docker Compose om PostgreSQL (met Apache AGE), pgAdmin en Neo4j te beheren.
+Het project gebruikt Docker Compose om PostgreSQL (met Apache AGE) en pgAdmin te beheren. Neo4j draait lokaal via Neo4j Desktop.
 
 ### Docker Compose Configuratie
 
-Voeg Neo4j toe aan je `docker-compose.yml`:
+Je `docker-compose.yml` bevat alleen PostgreSQL en pgAdmin:
 
 ```yaml
 version: '3.8'
@@ -249,22 +250,8 @@ services:
       - postgres
     restart: unless-stopped
 
-  neo4j:
-    image: neo4j:latest
-    container_name: neo4j-graph
-    environment:
-      NEO4J_AUTH: neo4j/admin1234
-      NEO4J_PLUGINS: '["apoc"]'
-    ports:
-      - "7474:7474"  # HTTP
-      - "7687:7687"  # Bolt
-    volumes:
-      - neo4jdata:/data
-    restart: unless-stopped
-
 volumes:
   pgdata:
-  neo4jdata:
 ```
 
 ### Docker Compose Starten
@@ -275,7 +262,7 @@ Zorg dat je in de project directory bent en start de containers:
 docker-compose up -d
 ```
 
-Dit start alle drie containers op de achtergrond met de volgende configuratie:
+Dit start twee containers op de achtergrond met de volgende configuratie:
 
 - **PostgreSQL (Apache AGE):**
   - Container naam: `age-postgres`
@@ -291,17 +278,9 @@ Dit start alle drie containers op de achtergrond met de volgende configuratie:
   - Email: `admin@admin.com`
   - Wachtwoord: `admin1234`
 
-- **Neo4j:**
-  - Container naam: `neo4j-graph`
-  - HTTP Port: `7474` (Browser UI: `http://localhost:7474`)
-  - Bolt Port: `7687` (Database connection)
-  - Gebruiker: `neo4j`
-  - Wachtwoord: `admin1234`
-  - Data persistentie via volume `neo4jdata`
-
 ### Containers Verifiëren
 
-Controleer of alle drie containers draaien:
+Controleer of beide containers draaien:
 
 ```bash
 docker-compose ps
@@ -312,7 +291,7 @@ Of gebruik:
 docker ps
 ```
 
-Je zou drie containers moeten zien: `age-postgres`, `pgadmin` en `neo4j-graph`.
+Je zou twee containers moeten zien: `age-postgres` en `pgadmin`.
 
 ### Logs Bekijken
 
@@ -328,12 +307,22 @@ docker-compose logs postgres
 # Alleen pgAdmin
 docker-compose logs pgadmin
 
-# Alleen Neo4j
-docker-compose logs neo4j
-
 # Follow mode (real-time)
 docker-compose logs -f
 ```
+
+### Neo4j Desktop Starten
+
+1. Open **Neo4j Desktop**
+2. Maak een nieuw project aan (of gebruik bestaand project)
+3. Maak een nieuwe database aan:
+   - Klik op **Add** → **Local DBMS**
+   - Naam: `mobilab-exo` (of een andere naam)
+   - Wachtwoord: `admin1234` (of een ander wachtwoord - **onthoud dit!**)
+   - Versie: Latest of 5.x
+4. Klik op **Start** om de database te starten
+5. Wacht tot de status **Active** is
+6. Noteer de Bolt URL (meestal `bolt://localhost:7687` of `neo4j://localhost:7687`)
 
 ## Stap 2: Database Interfaces Configureren
 
@@ -360,13 +349,14 @@ docker-compose logs -f
 
 ### Neo4j Browser Configureren
 
-1. Open je browser en ga naar `http://localhost:7474`
-2. Je ziet de Neo4j Browser interface
-3. Connect to Neo4j:
-   - **Connect URL:** `neo4j://localhost:7687` (of gebruik `bolt://localhost:7687`)
+1. In **Neo4j Desktop**, klik op **Open** bij je actieve database
+2. Dit opent automatisch de Neo4j Browser in je webbrowser
+3. Of open handmatig: `http://localhost:7474`
+4. Verbinding gebeurt automatisch als je vanuit Neo4j Desktop opent
+5. Bij handmatige verbinding:
+   - **Connect URL:** `neo4j://localhost:7687` (of `bolt://localhost:7687`)
    - **Username:** `neo4j`
-   - **Password:** `admin1234`
-4. Klik op "Connect"
+   - **Password:** het wachtwoord dat je hebt ingesteld
 
 **Verificatie:**
 ```cypher
@@ -426,13 +416,16 @@ DB_NAME=testdb
 # CSV directory (absoluut pad of relatief)
 CSV_DIR=./csv
 
-# Neo4j configuratie
+# Neo4j configuratie (Neo4j Desktop)
 NEO4J_URI=neo4j://localhost:7687
 NEO4J_USER=neo4j
 NEO4J_PASSWORD=admin1234
 ```
 
-**Let op:** Deze waarden komen overeen met de configuratie in `docker-compose.yml`. Vanaf je lokale machine (buiten Docker) gebruik je `localhost` als host.
+**Let op:** 
+- PostgreSQL waarden komen overeen met `docker-compose.yml`
+- Neo4j wachtwoord moet overeenkomen met wat je hebt ingesteld in Neo4j Desktop
+- Vanaf je lokale machine (buiten Docker) gebruik je `localhost` als host
 
 **Belangrijke informatie over Neo4j:**
 - Als `NEO4J_URI`, `NEO4J_USER` en `NEO4J_PASSWORD` zijn ingevuld, worden de data **dubbel** opgeslagen: in zowel PostgreSQL (AGE) als Neo4j
@@ -671,10 +664,11 @@ Als je de ports wijzigt in `docker-compose.yml`, update dan ook `DB_PORT` in je 
 - Verifieer met: `docker exec -it age-postgres psql -U admin -d testdb -c "SELECT * FROM pg_extension WHERE extname='age';"`
 
 **Probleem:** Neo4j verbinding mislukt
-- Controleer of Neo4j container draait: `docker ps | grep neo4j`
-- Bekijk Neo4j logs: `docker logs neo4j-graph`
-- Verificeer credentials in `.env` bestand
-- Test verbinding: `http://localhost:7474` in browser
+- Controleer of Neo4j database draait in Neo4j Desktop
+- Verificeer dat de database status "Active" is
+- Controleer of de Bolt poort (7687) niet bezet is door een andere applicatie
+- Verificeer credentials in `.env` bestand (username/wachtwoord uit Neo4j Desktop)
+- Test verbinding: open Neo4j Browser via Neo4j Desktop of ga naar `http://localhost:7474`
 - Als Neo4j niet nodig is, laat de `NEO4J_*` variabelen leeg in `.env`
 
 **Probleem:** CSV delimiter errors
