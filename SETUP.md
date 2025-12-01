@@ -615,21 +615,6 @@ docker-compose up -d
 
 ### Visuele Diagrammen
 
-Voor interactieve en kleurrijke diagrammen, zie: **[docs/architecture-diagram.md](docs/architecture-diagram.md)**
-
-De diagrammen bevatten:
-- 🎯 **Flow Diagram** - Complete data flow van CSV naar database
-- 📊 **Sequence Diagram** - Stap-voor-stap import proces
-- 🗄️ **ER Diagram** - Database relaties en structuur
-- 🔍 **Query Flow** - Hoe queries worden verwerkt
-- 🐳 **Docker Architecture** - Container setup en networking
-
-> **Tip:** Open `docs/architecture-diagram.md` in een Markdown viewer die Mermaid diagrams ondersteunt (zoals GitHub, VS Code met Markdown Preview, of online tools zoals [Mermaid Live Editor](https://mermaid.live/))
-
-# Application Architecture Diagram
-
-## Complete Flow Diagram
-
 ```mermaid
 graph TD
     A[📁 CSV Bestanden in csv/ folder] --> B[💾 Push naar GitHub Repository]
