@@ -3,8 +3,8 @@ exoId;dofId;aim;rangeAdjustable;lowerBoundMinAngle;lowerBoundMaxAngle;upperBound
 41;31;Nee;Nee;40;40;150;150;Nee;-1
 122;30;Nee;Nee;25;25;180;180;Ja;-1
 122;31;Nee;Nee;35;35;140;140;Ja;-1
-123;21;Nee;Ja;15;90;;;;Nee;1
-123;24;Nee;Ja;15;90;;;;Nee;1
+123;21;Nee;Ja;15;90;;;Nee;1
+123;24;Nee;Ja;15;90;;;Nee;1
 141;21;Nee;Nee;;;;;Ja;1
 141;24;Nee;Nee;;;;;Ja;1
 141;37;Nee;Nee;;;;;Ja;1

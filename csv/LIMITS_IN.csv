@@ -1,9 +1,9 @@
 exoId;dofId;aim;maxAngle;minAngle;adjustable;direction
-40;22;Ja;Nee;;;-1
-40;23;Ja;Nee;;;-1
-40;28;Nee;Nee;;;-1
-40;29;Nee;Nee;;;-1
-41;30;Nee;;-15;-15;-1
-141;37;Nee;Nee; 
+40;22;Ja;;;Nee;-1
+40;23;Ja;;;Nee;-1
+40;28;Nee;;;Nee;-1
+40;29;Nee;;;Nee;-1
+41;30;Nee;-15;-15;;-1
+141;37;Nee;;;Nee;1
 169;37;Nee;95;45;Ja;1
 176;30;Nee;-25;-25;Nee;-1
